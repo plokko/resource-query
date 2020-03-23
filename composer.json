@@ -1,0 +1,27 @@
+{
+    "name": "plokko/resource-query",
+    "description": "",
+    "keywords": [
+        "laravel",
+        "resource",
+        "query",
+        "eloquent",
+        "filter",
+        "paginate"
+    ],
+    "require": {
+        "php": ">=7.2",
+        "ext-json": "*"
+    },
+    "require-dev": {},
+    "authors": [
+        {
+            "name": "Francesco Pellerone"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "plokko\\ResourceQuery\\": "src"
+        }
+    }
+}
