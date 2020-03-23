@@ -37,6 +37,21 @@ class OrderingBuilder implements \ArrayAccess
     }
 
     /**
+     * Called as name([field][,direction]), ex: ->my_field('=','field')
+     * @param $name
+     * @param $arguments
+     * @return OrderParameter
+     */
+    function __call($name, $arguments): OrderParameter
+    {
+        return $this->add(
+            $name,
+            optional($arguments[0]),
+            optional($arguments[1])
+        );
+    }
+
+    /**
      * @param string $name
      * @param string|null $field
      * @return OrderParameter

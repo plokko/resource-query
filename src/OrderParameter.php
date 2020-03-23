@@ -8,8 +8,6 @@ namespace plokko\ResourceQuery;
  * @property-read string $name
  * @property-read string $field
  * @property-read string $defaultOrder
- * @property-read
- * @property-read
  */
 class OrderParameter
 {
@@ -39,7 +37,7 @@ class OrderParameter
     }
 
     /**
-     * @param string $name
+     * @param string|callable $name Table field to use or a callback to sort
      * @return $this
      */
     public function field($name): OrderParameter
@@ -79,14 +77,21 @@ class OrderParameter
         }
 
         if ($this->shouldApply()) {
-            $query->orderBy($this->field, $direction);
-            return [$this->name, $direction];
+            if (is_callable($this->field)) {
+                //callback implementation
+                ($this->field)($query, $direction);
+                return [$this->name, $direction];
+            } else {
+                $query->orderBy($this->field, $direction);
+                return [$this->name, $direction];
+            }
         }
         return null;
     }
 
     protected function shouldApply()
     {
+        //TODO
         return true;
     }
 }

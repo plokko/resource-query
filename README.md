@@ -1,10 +1,24 @@
-# ResourceQuery
+# Resource-query
+Automatic filtering and sorting for Laravel queries with Ajax capabilities.
 
+## Scope of this package
+This package adds classes that help automate the creation of back-end defined user queries (Ajax) with advanced functions like filtering, sorting, pagination, resource casting and smart casting.
+The query will be based on a pre-defined Eloqent query and the user may customize the query by applying pre-defined query parameters. 
+All the query parameters are easly defined and customized in the back-end allowing strict control on what the user can see or do.
+
+## Installation
+Install it via composer
+`composer require plokko\resource-query`
 
 ## Initialization
-You can create your own class exteinding ResourceQuery abstract class
+To use this class you must extend the base `ResourceQuery` class or use a builder.
+Exending `ResourceQuery` class is preferred if you plan to reutilize the same settings, the builder approach is quicker if you plan to use it one time only.
+
+### Extending ResourceQuery
+Create a new class that extends `plokko\ResourceQuery\ResourceQuery` and implement the function `getQuery()` that will return the base query
+
 ```php
-use \App\ResourceQuery\ResourceQuery;
+use plokko\ResourceQuery\ResourceQuery;
 
 class ExampleResourceQuery extends ResourceQuery{
 
@@ -17,14 +31,15 @@ class ExampleResourceQuery extends ResourceQuery{
 }
 ```
 
+### Using the builder
 Or by defining it in-place with `QueryBuilder`
 ```php
-use \App\ResourceQuery\QueryBuilder;
+use plokko\ResourceQuery\QueryBuilder;
+
 $query = MyModel::select('id','etc');
 //Add the base query
 $resource =  new QueryBuilder($query);
 ```
-In either case you have to define or pass a Query where filters and/or ordering rules will be applied.
 
 
 ## Example usage
@@ -170,18 +185,45 @@ $resource->filters->add('filter3','=','fieldC')->applyIfNotPresent('filter1','fi
 
 
 ## Sorting
-You can also add sorting capabilities to the query by declaring some soring parameters:
+Like with filtering you can declare sorting query parameters via the `OrderBy` parameter in many ways:
 
 ```php
-$resource->orderBy->add('<SORTING_PARAMETER>');
-$resource->orderBy->add('<SORTING_PARAMETER>');
+$resource->orderBy->add('<SORTING_PARAMETER>'[,<FIELD>][,<DIRECTION>]);
+$resource->orderBy-><SORTING_PARAMETER>;
+$resource->orderBy['<SORTING_PARAMETER>'];
+$resource->orderBy-><SORTING_PARAMETER>([,<FIELD>][,<DIRECTION>]);
+```
+For each filter you can specify a related table field to order with the `field('<FIELD>')` function and a default sorting direction with `defaultOrder('<DIRECTION>')`.
+If you want the sorting direction to be fixed and not modifiable by the user you can use the `direction('<DIRECTION>')` method.
+
+If you want to customize the sorting you can pass a callback as the `field` parameter; the query where the sorting will be applied will be passed as first argument and the sorting direction as second argument.
+
+Example:
+```php
+$resource->orderBy->email->field('email');
+$resource->orderBy->name->field('username')->defaultOrder('desc');
+// Forced ascending
+$resource->orderBy->add('name-asc','username','asc');
+// Example custom filter
+$resource->orderBy->test1->field(function($query,$direction){
+    $query->orderBy('email',$direction)
+          ->orderBy('name',$direction)
+          ->orderBy('id','asc');        
+});
 ```
 
+## Order query parameter
+The filter query parameter can be set with the `$orderField` parameter of the ResourceQuery.
+The filter can be specified as a key value with the sorting parameter as key and the direction as a value or by using one of the two short syntax (as string, comma separated):
+* `<sorting_parameter>[:<direction>]`
+* `[+|-]<sorting_parameter>`  where prepending "+" means ascending order and "-" descending order
 
-## TODO:
+Example:
 
- * Sorting
- * pagination
- * resource casting
- * filter advanced options
- 
+    page?order_by[field1]=&order_by[field2]=asc&order_by[field3]=desc
+Or
+
+    page?order_by=field1,field2:asc,field3:desc
+Or
+
+    page?order_by=field1,+field2,-field3

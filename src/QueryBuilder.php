@@ -25,4 +25,5 @@ class QueryBuilder extends ResourceQuery
     {
         return $this->query;
     }
+
 }
