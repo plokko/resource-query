@@ -51,7 +51,6 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
     function __get($name)
     {
         switch ($name) {
-            case 'defaultOrderBy':
             case 'filters':
             case 'orderBy':
             case 'page':
@@ -87,21 +86,15 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
     }
 
     /**
-     * Set default order
-     * @param string|null $field
-     * @param string $direction
+     * Remove all filters
      */
-    final function setDefaultOrderBy($field, $direction = 'asc')
-    {
-        $this->defaultOrderBy = $field ? [$field, $direction] : null;
-    }
-
     final function removeFilters()
     {
         $this->filters->removeAll();
     }
 
     /**
+     * Return the query as a SQL string
      * @return string
      */
     public function toSql()
@@ -135,17 +128,29 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
     }
 
     /**
-     * Return the base query
+     * Return the base query, must be implemented by the final class
      * @return \Illuminate\Database\Query\Builder|\Illuminate\Database\Eloquent\Builder Base query
      */
     abstract protected function getQuery();
 
+    /**
+     * Get filter parameters
+     * @internal
+     * @param Request $request
+     * @return array
+     */
     protected function getFilterData(Request $request): array
     {
         $data = $request->input($this->filtersRoot);
         return $data;
     }
 
+    /**
+     * Get order parameters
+     * @internal
+     * @param Request $request
+     * @return array|false[]|mixed|string[]|\string[][]
+     */
     protected function getOrderData(Request $request)
     {
         $data = $request->input($this->orderField);
@@ -161,6 +166,8 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
     }
 
     /**
+     * Apply the filters to the base query
+     * @internal
      * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Eloquent\Builder $query
      * @param array[] $filters Filters to array
      * @return \Illuminate\Database\Query\Builder|\Illuminate\Database\Eloquent\Builder
@@ -171,7 +178,8 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
     }
 
     /**
-     * Apply ordering filters to the query
+     * Apply ordering filters to the base query
+     * @internal
      * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Eloquent\Builder $query
      * @param string[][] $orderBy array of sorting order (field,direction)
      * @return \Illuminate\Database\Query\Builder|\Illuminate\Database\Eloquent\Builder Query with sorting filters applied
@@ -184,17 +192,28 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
         return $query;
     }
 
+    /**
+     * Make the class iterable
+     * @return \Illuminate\Support\Collection|\Traversable
+     */
     public function getIterator()
     {
         return collect($this->toArray());
     }
 
+    /**
+     * Executes the query and returns the data as an array
+     * @param Request|null $request Request, if null current request will be used
+     * @return array
+     */
     public function toArray(Request $request = null)
     {
         return $this->toResource($request)->toArray($request ?: request());
     }
 
     /**
+     * Executes the query and returns the result as a JsonResource or cast to the specified API Resource
+     * @see https://github.com/plokko/resource-query/wiki/Resource-casting
      * @param Request|null $request
      * @return JsonResource
      */
@@ -218,6 +237,12 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
         return $resource;
     }
 
+    /**
+     * Executes the query
+     * @param Request|null $request
+     * @param array $opts
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator|\Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection|\Illuminate\Support\Collection
+     */
     function get(Request $request = null, array &$opts = [])
     {
         if (!$request)
@@ -249,6 +274,10 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
         return in_array($n, $this->pagination) ? $n : current($this->pagination);
     }
 
+    /**
+     * Cast to Json
+     * @return mixed
+     */
     function jsonSerialize()
     {
         return $this->getData();
@@ -261,6 +290,11 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
 
     }
 
+    /**
+     * Cast to response
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse|\Symfony\Component\HttpFoundation\Response
+     */
     public function toResponse($request)
     {
         return $this->toResource($request)->toResponse($request);
