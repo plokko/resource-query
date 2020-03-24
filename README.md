@@ -227,3 +227,74 @@ Or
 Or
 
     page?order_by=field1,+field2,-field3
+
+## Javascript API
+The package does include a Javascript counterpart to help query the back-end; 
+the package is distributed with the composer package instead of a separate npm package as it's strictly related to the php implementation.
+
+Include it in `resources/js/app.js`
+```js
+import ResourceQuery from "../../vendors/plokko/resource-query/js/ResourceQuery";
+// Make it available in pages
+window.ResourceQuery = ResourceQuery;
+//...
+```
+
+### Usage
+Instantiate a new ResourceQuery by specifying target URL and method (default get):
+```js
+let rq = new ResourceQuery('/url','get');
+```
+
+The back-end should be something as follow:
+```php
+class MyController extends Controller {
+    //...
+    function testPage(Request $request){
+        $resource = new UserResourceQuery();
+        //...add filters, etc.
+
+        // if it's an Ajax resource return the resource directly 
+        if($request->ajax()){
+            return $resource;
+        }
+
+        // Or else return the HTML page
+        return view('mypage');
+    }
+    //...
+}
+```
+
+You can add or modify filters, sorting and options
+```js
+// Set filters root parameter (must be the same as the back-end)
+rq.filtersRoot = 'filters';
+// Set orderby parameter (must be the same as the back-end)
+rq.orderField = 'order_by';
+
+// Add a filter
+rq.filters.test1 = 'a';
+// or
+rq.filter('test1','a');
+// or
+rq.addFilters({test1:'a',test2:'b'});
+
+// Order
+rq.order_by = ['field1',['field2','desc']];
+// or
+rq.orderBy('field1','asc');
+
+// Clears all the filters
+rq.clearFilters();
+// Clears all the orderby options
+rq.clearOrderBy();
+//Clears all the filters and orderby options
+rq.resetQuery();
+
+// Set page (if pagination is enabled)
+rq.page = 2;
+// Set the page size (may be ignored by the back-end if not allowed)
+rq.pageSize = 10; // 10 element per page
+
+```
