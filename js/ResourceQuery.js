@@ -70,6 +70,7 @@ class ResourceQuery {
         if (this.order_by.length > 0) {
             data[this.orderField] = (this.order_by.map(v => Array.isArray(v) ? v.join(':') : v)).join(',');
         }
+        data.page = this.page;
 
         let method = this.method.toLowerCase();
 
