@@ -82,8 +82,20 @@ class ResourceQuery {
         }
 
         // Execute query
-        return new Promise((resolve, reject) => {
-            axios[method](this.action, data)
+        return new Promise((resolve, reject,onCancel) => {
+            const CancelToken = axios.CancelToken;
+            const source = CancelToken.source();
+
+            onCancel(()=>{
+                source.cancel('Operation canceled by the user.');
+            });
+
+            let rq = axios({
+                    url:this.action,
+                    method,
+                    data,
+                    cancelToken: source.token,
+                })
                 .then(r => {
                     if (r && r.data) {
                         resolve(r.data);
@@ -96,6 +108,7 @@ class ResourceQuery {
                 .catch(e => {
                     reject(e);
                 })
+
 
         });
     }
