@@ -80,7 +80,7 @@ To the Callable filter will be passed 3 parameters:
  2. FilterCondition $condition - The current condition, used to retrive condition or field name, etc. 
 
 You can add the filter in many ways:
-```
+```php
 // With the add function (default)
 $resource->filters->add(<FILTER_NAME:string>,[<CONDITION:string|callable>],[<FIELD_NAME:string>]);
 // Called as a parameter
@@ -98,9 +98,13 @@ $resource->filters->filter2->condition('like')->field('fieldB');
 ```
 
 You can remove a filter with 
-```php $resource->filters->remove('<FILTER_NAME>');```
+```php
+$resource->filters->remove('<FILTER_NAME>');
+```
 or with unset function
-```php unset($resource->filters['<FILTER_NAME>']);```
+```php
+unset($resource->filters['<FILTER_NAME>']);
+```
 
 If you wish to remove all filters use
 ```php $resource->removeFilters();```
@@ -211,6 +215,9 @@ $resource->orderBy->test1->field(function($query,$direction){
           ->orderBy('id','asc');        
 });
 ```
+
+### Default sorting order
+If you want to specify a default sorting order you can 
 
 ## Order query parameter
 The filter query parameter can be set with the `$orderField` parameter of the ResourceQuery.
