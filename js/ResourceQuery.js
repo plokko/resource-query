@@ -153,34 +153,6 @@ class ResourceQuery {
     }
 }
 
-class CancellablePromise {
-
-    constructor(executor, onCancel) {
-        this.promise = new Promise(executor);
-        this._onCancel = onCancel;
-    }
-
-    then() {
-        this.promise.then.apply(this.promise, arguments);
-        return this;
-    }
-
-    catch() {
-        this.promise.catch.apply(this.promise, arguments);
-        return this;
-    }
-
-    finally() {
-        this.promise.finally.apply(this.promise, arguments);
-        return this;
-    }
-
-    cancel() {
-        console.log({oncancel: this._onCancel, e: this})
-        this._onCancel && this._onCancel();
-    }
-}
-
 class QueryResult {
     constructor(responseData, query) {
         this._response = responseData;
