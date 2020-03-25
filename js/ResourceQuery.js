@@ -131,9 +131,9 @@ class ResourceQuery {
      * Executes the query and returns a QueryResult
      * @returns {Promise<QueryResult>}
      */
-    getResult() {
+    getResult(opt) {
         return new Promise((resolve, reject) => {
-            this.get().then(r => {
+            this.get(opt).then(r => {
                 resolve(new QueryResult(r, this.clone()));
             })
                 .catch(e => {

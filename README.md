@@ -246,6 +246,7 @@ import ResourceQuery from "../../vendors/plokko/resource-query/js/ResourceQuery"
 window.ResourceQuery = ResourceQuery;
 //...
 ```
+*Note: Axios is required as a dependency*
 
 ### Usage
 Instantiate a new ResourceQuery by specifying target URL and method (default get):
@@ -305,3 +306,29 @@ rq.page = 2;
 rq.pageSize = 10; // 10 element per page
 
 ```
+
+### Request cancellation and options
+Request cancellation is supported via a token option:
+```js
+let rq = new ResourceQuery('/url','get');
+let cancelToken = ResourceQuery.cancelToken;
+rq.get({cancelToken})
+    .then(r => {
+        console.log('Data received',r);
+    })
+    .catch(e => {
+        // Check if the request was user-cancelled            
+        if (ResourceQuery.isCancel(e)) {
+            //the request was user-cancelled, no error thrown
+            console.warn('user cancelled');
+        } else {
+            console.error('Request error:', e);
+        }
+    });
+//...
+
+// When you want to cancel the request
+cancelcancelToken.cancel();
+```
+
+See [Axios request configuration](https://github.com/axios/axios#request-config) for other supported configuration options (some proprieties may be ignored)
