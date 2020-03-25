@@ -91,10 +91,13 @@ class ResourceQuery {
 
         let cancelToken = opt && opt.cancelToken && opt.cancelToken.token;
 
-        let cfg = {
-            url: this.action,
-            cancelToken,
-        };
+        let cfg = Object.assign({},
+            opt||{},
+            {
+                url: this.action,
+                cancelToken,
+            }
+        );
 
         if (method === 'get') {
             cfg.method = 'get';
