@@ -54,11 +54,23 @@ class ResourceQuery {
         return this;
     }
 
+    static get cancelToken() {
+        return ResourceQuery.getCancelToken();
+    }
+
+    static getCancelToken() {
+        return axios.CancelToken.source()
+    }
+
+    static isCancel(e) {
+        return axios.isCancel(e);
+    }
+
     /**
      * Executes the query and return the query data
      * @returns {Promise<Object>}
      */
-    get() {
+    get(opt) {
         let data = {};
         // Filters
         if (this.filtersRoot) {
@@ -74,28 +86,29 @@ class ResourceQuery {
 
         let method = this.method.toLowerCase();
 
+        let params = null;
+
+
+        let cancelToken = opt && opt.cancelToken && opt.cancelToken.token;
+
+        let cfg = {
+            url: this.action,
+            cancelToken,
+        };
+
         if (method === 'get') {
-            data = {params: data};
+            cfg.method = 'get';
+            cfg.params = data;
         } else {
+            cfg.method = 'post';
             data['_method'] = this.method;
-            method = 'post';
+            cfg.data = data;
         }
 
         // Execute query
-        return new Promise((resolve, reject,onCancel) => {
-            const CancelToken = axios.CancelToken;
-            const source = CancelToken.source();
+        return new Promise((resolve, reject) => {
 
-            onCancel(()=>{
-                source.cancel('Operation canceled by the user.');
-            });
-
-            let rq = axios({
-                    url:this.action,
-                    method,
-                    data,
-                    cancelToken: source.token,
-                })
+            let rq = axios(cfg)
                 .then(r => {
                     if (r && r.data) {
                         resolve(r.data);
@@ -108,8 +121,6 @@ class ResourceQuery {
                 .catch(e => {
                     reject(e);
                 })
-
-
         });
     }
 
@@ -137,7 +148,34 @@ class ResourceQuery {
         Object.assign(e, this)
         return e
     }
+}
 
+class CancellablePromise {
+
+    constructor(executor, onCancel) {
+        this.promise = new Promise(executor);
+        this._onCancel = onCancel;
+    }
+
+    then() {
+        this.promise.then.apply(this.promise, arguments);
+        return this;
+    }
+
+    catch() {
+        this.promise.catch.apply(this.promise, arguments);
+        return this;
+    }
+
+    finally() {
+        this.promise.finally.apply(this.promise, arguments);
+        return this;
+    }
+
+    cancel() {
+        console.log({oncancel: this._onCancel, e: this})
+        this._onCancel && this._onCancel();
+    }
 }
 
 class QueryResult {
