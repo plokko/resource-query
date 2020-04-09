@@ -19,7 +19,7 @@ use JsonSerializable;
  * @property-read string|null $filtersRoot
  * @property-read string|null $orderField
  * @property-read int|null|array $paginate
- * @property-read string|null $userResource
+ * @property-read string|null $useResource
  */
 abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorAggregate, Arrayable
 {
@@ -33,7 +33,7 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
         /** @var string Parameter used for ordering */
         $orderField = 'order_by',
         /** @var null|string */
-        $userResource = null;
+        $useResource = null;
     private
         /** @var FilterBuilder */
         $filters,
@@ -56,6 +56,7 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
             case 'page':
             case 'filtersRoot':
             case 'pagination':
+            case 'useResource':
                 return $this->$name;
             default:
                 return null;
@@ -65,32 +66,43 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
     /**
      * Set filters root
      * @param string|null $name filters root
+     * @return $this
      */
     function setFiltersRoot($name)
     {
         $this->filtersRoot = $name;
+        return $this;
     }
 
+    /**
+     * @param string|null $resourceClass
+     * @return $this
+     */
     function useResource($resourceClass)
     {
-        $this->userResource = $resourceClass;
+        $this->useResource = $resourceClass;
+        return $this;
     }
 
     /**
      * Set pagination
      * @param int|null|array $pagination
+     * @return $this
      */
     final function setPagination($pagination)
     {
         $this->paginate = $pagination;
+        return $this;
     }
 
     /**
      * Remove all filters
+     * @return $this
      */
     final function removeFilters()
     {
         $this->filters->removeAll();
+        return $this;
     }
 
     /**
