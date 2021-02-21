@@ -8,7 +8,7 @@ All the query parameters are easly defined and customized in the back-end allowi
 
 ## Installation
 Install it via composer
-`composer require plokko\resource-query`
+`composer require plokko/resource-query`
 
 ## Initialization
 To use this class you must extend the base `ResourceQuery` class or use a builder.
