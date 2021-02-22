@@ -9,8 +9,8 @@ class ResourceQuery {
         this.filters = {};
         this.order_by = [];
         this.page = 1;
-        this.filtersRoot = null;
-        this.orderField = 'order_by';
+        this.filterParameter = null;
+        this.orderParameter = 'order_by';
         this.pageSize = null;
         if (opt) {
             Object.assign(this, opt);
@@ -73,14 +73,14 @@ class ResourceQuery {
     get(opt) {
         let data = {};
         // Filters
-        if (this.filtersRoot) {
-            data[this.filtersRoot] = this.filters;
+        if (this.filterParameter) {
+            data[this.filterParameter] = this.filters;
         } else {
             Object.assign(data, this.filters);
         }
         // OrderBy
         if (this.order_by.length > 0) {
-            data[this.orderField] = (this.order_by.map(v => Array.isArray(v) ? v.join(':') : v)).join(',');
+            data[this.orderParameter] = (this.order_by.map(v => Array.isArray(v) ? v.join(':') : v)).join(',');
         }
         data.page = this.page;
 
