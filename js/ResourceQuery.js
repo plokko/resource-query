@@ -19,6 +19,12 @@ class ResourceQuery {
         this.method = method || 'get';
     }
 
+    /**
+     * Add ordering parameter
+     * @param {string} field Field to order
+     * @param {string} dir Sorting direction, "asc" or "desc"
+     * @returns {ResourceQuery}
+     */
     orderBy(field, dir) {
         this.order_by.push([
             field,
@@ -27,26 +33,49 @@ class ResourceQuery {
         return this;
     }
 
+    /**
+     * Remove all sorting settings
+     * @returns {ResourceQuery}
+     */
     clearOrderBy() {
         this.order_by = [];
         return this;
     }
 
+    /**
+     * Remove all filters
+     * @returns {ResourceQuery}
+     */
     clearFilters() {
         this.filters = {};
         return this;
     }
 
+    /**
+     * Add a filter
+     * @param {string} name
+     * @param {string} value
+     * @returns {ResourceQuery}
+     */
     filter(name, value) {
         this.filters[name] = value;
         return this;
     }
 
+    /**
+     * Add filters as key-value object
+     * @param {Object} filters
+     * @returns {ResourceQuery}
+     */
     addFilters(filters) {
         Object.assign(this.filters, filters);
         return this;
     }
 
+    /**
+     * Clear all filters, ordering and page number
+     * @returns {ResourceQuery}
+     */
     resetQuery() {
         this.filters = {};
         this.order_by = [];
@@ -142,10 +171,19 @@ class ResourceQuery {
         })
     }
 
+    /**
+     * Return paginator
+     * @param {boolean} prefetch If true start fetching after call
+     * @returns {Paginator}
+     */
     paginate(prefetch = true) {
         return new Paginator(this.clone(), prefetch);
     }
 
+    /**
+     * Clone item
+     * @returns {ResourceQuery}
+     */
     clone() {
         let e = new ResourceQuery(this.action, this.method);
         Object.assign(e, this)
@@ -193,10 +231,11 @@ class QueryResult {
 }
 
 /**
- * @property {Array} data
- * @property {Boolean} loading
- * @property {Integer} current_page
- * @property {Integer} last_page
+ * Helper class to read paginated data by fetching page by page in an incrementing manner
+ * @property {Array} data Data read
+ * @property {Boolean} loading true if loading
+ * @property {Integer} current_page Current page number
+ * @property {Integer} last_page Last page
  */
 class Paginator {
 
@@ -210,10 +249,17 @@ class Paginator {
             this.loadMore();
     }
 
+    /**
+     * Return true if there are more item to fetch, false otherwise
+     * @returns {boolean}
+     */
     hasMore() {
         return this._lastMeta && this._lastMeta.current_page && this._lastMeta.current_page < this._lastMeta.last_page;
     }
 
+    /**
+     * @private
+     */
     _loadData(r) {
         this.data = this.data.concat(r.data);
         this._lastMeta = r.meta;
@@ -221,6 +267,10 @@ class Paginator {
         this.last_page = r.meta && r.meta.last_page;
     }
 
+    /**
+     * Fetch next page
+     * @returns {Promise}
+     */
     loadMore() {
         if (!this.loading) {
             this.loading = true;
