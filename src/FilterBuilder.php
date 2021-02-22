@@ -7,12 +7,30 @@ class FilterBuilder implements \ArrayAccess
 {
     /**@var FilterCondition[] */
     private $filters = [];
+    /** @var null|string Filters query parameter*/
+    public $filterParameter='filters';
 
+    /**
+     * Set filters query parameter
+     * @param null|string $field
+     * @return $this
+     */
+    public function setFiltersParameter($field=null){
+        $this->filtersRoot = $field;
+        return $this;
+    }
+    /**
+     * Remove a filter by name
+     * @param string $name
+     */
     function remove($name)
     {
         unset($this[$name]);
     }
 
+    /**
+     * Remove all defined filters
+     */
     function removeAll()
     {
         $this->filters = [];
@@ -24,14 +42,39 @@ class FilterBuilder implements \ArrayAccess
      */
     function __get($name)
     {
-        return empty($this->filters[$name]) ?
-            $this->add($name) :
-            $this->filters[$name];
+        return $this->add($name);
     }
 
+    /**
+     * Add a new filter or update an existing one
+     * @param string $name
+     * @param callable|string $condition
+     * @param null $field
+     * @return FilterCondition
+     */
     function add($name, $condition = null, $field = null): FilterCondition
     {
-        $cnd = new FilterCondition($name);
+        if(!isset($this->filters[$name])){
+            $this->filters[$name] = new FilterCondition($name,$this);
+        }
+        if ($condition)
+            $this->filters[$name]->condition($condition);
+        if ($field)
+            $this->filters[$name]->field($field);
+
+        return $this->filters[$name];
+    }
+
+    /**
+     * Set a new filter, if exists overwrite
+     * @param string $name
+     * @param callable|string $condition
+     * @param null $field
+     * @return FilterCondition
+     */
+    function set($name, $condition = null, $field = null): FilterCondition
+    {
+        $cnd = new FilterCondition($name,$this);
         if ($condition)
             $cnd->condition($condition);
         if ($field)

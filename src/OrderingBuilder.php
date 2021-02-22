@@ -10,6 +10,18 @@ class OrderingBuilder implements \ArrayAccess
         /** @var array|null */
         $defaultOrder = null;
 
+    /** @var string Query parameter used for ordering */
+    public $orderField='order_by';
+
+    /**
+     * Set query parameter used for ordering
+     * @param null|string $param
+     * @return $this
+     */
+    public function setOrderParameter($param=null){
+        $this->orderField = $param;
+        return $this;
+    }
 
     /**
      * @param array|null $defaultOrder
@@ -19,11 +31,18 @@ class OrderingBuilder implements \ArrayAccess
         $this->defaultOrder = $defaultOrder;
     }
 
+    /**
+     * Remove a filter condition by name
+     * @param string $name
+     */
     function remove($name)
     {
         unset($this->parameters[$name]);
     }
 
+    /**
+     * Remove all ordering conditions
+     */
     function removeAll()
     {
         $this->parameters = [];
@@ -31,9 +50,7 @@ class OrderingBuilder implements \ArrayAccess
 
     function __get($offset)
     {
-        return empty($this->parameters[$offset]) ?
-            $this->add($offset)
-            : $this->parameters[$offset];
+        return $this->add($offset);
     }
 
     /**
@@ -57,6 +74,23 @@ class OrderingBuilder implements \ArrayAccess
      * @return OrderParameter
      */
     function add($name, $field = null, $direction = null): OrderParameter
+    {
+        if(!isset($this->parameters[$name])){
+            $this->parameters[$name] = new OrderParameter($name);
+        }
+        if ($field !== null)
+            $this->parameters[$name]->field($field);
+        if ($direction !== null)
+            $this->parameters[$name]->direction($field);
+        return $this->parameters[$name];
+    }
+
+    /**
+     * @param string $name
+     * @param string|null $field
+     * @return OrderParameter
+     */
+    function set($name, $field = null, $direction = null): OrderParameter
     {
         $cnd = new OrderParameter($name);
         if ($field !== null)

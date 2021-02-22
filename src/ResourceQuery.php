@@ -16,8 +16,6 @@ use JsonSerializable;
  * @property-read FilterBuilder $filters
  * @property-read OrderingBuilder $orderBy
  * @property-read int $page
- * @property-read string|null $filtersRoot
- * @property-read string|null $orderField
  * @property-read int|null|array $paginate
  * @property-read string|null $useResource
  */
@@ -28,12 +26,11 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
         $pagination = 10,
         /** @var string */
         $paginationField = 'per_page',
-        /** @var string|null Base parameter used for filtering */
-        $filtersRoot = null,
-        /** @var string Parameter used for ordering */
-        $orderField = 'order_by',
         /** @var null|string */
-        $useResource = null;
+        $useResource = null,
+        /** @var Request */
+        $request;
+
     private
         /** @var FilterBuilder */
         $filters,
@@ -42,11 +39,18 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
         /** @var int current page */
         $page = 1;
 
-    function __construct()
+    function __construct(Request $request=null)
     {
+        $this->request = $request?:request();
         $this->filters = new FilterBuilder();
         $this->orderBy = new OrderingBuilder();
+        $this->init();
     }
+
+    /**
+     * Initialization function, where filters and ordering are set
+     */
+    protected function init(){}
 
     function __get($name)
     {
@@ -54,7 +58,6 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
             case 'filters':
             case 'orderBy':
             case 'page':
-            case 'filtersRoot':
             case 'pagination':
             case 'useResource':
                 return $this->$name;
@@ -63,16 +66,6 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
         }
     }
 
-    /**
-     * Set filters root
-     * @param string|null $name filters root
-     * @return $this
-     */
-    function setFiltersRoot($name)
-    {
-        $this->filtersRoot = $name;
-        return $this;
-    }
 
     /**
      * @param string|null $resourceClass
@@ -114,6 +107,11 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
         return $this->query()->toSql();
     }
 
+    public function getBindings()
+    {
+        return $this->query()->getBindings();
+    }
+
     /**
      * Builds the query applying filers and sorting rules
      * @return \Illuminate\Database\Query\Builder|\Illuminate\Database\Eloquent\Builder
@@ -153,7 +151,7 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
      */
     protected function getFilterData(Request $request): array
     {
-        $data = $request->input($this->filtersRoot);
+        $data = $request->input($this->filters->filterParameter,[]);
         return $data;
     }
 
@@ -165,7 +163,7 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
      */
     protected function getOrderData(Request $request)
     {
-        $data = $request->input($this->orderField);
+        $data = $request->input($this->orderBy->orderField);
         if ($data) {
             if (!is_array($data))
                 $data = explode(',', $data);
@@ -215,12 +213,11 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
 
     /**
      * Executes the query and returns the data as an array
-     * @param Request|null $request Request, if null current request will be used
      * @return array
      */
     public function toArray(Request $request = null)
     {
-        return $this->toResource($request)->toArray($request ?: request());
+        return $this->toResource($request)->toArray($this->request);
     }
 
     /**
@@ -255,7 +252,7 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
      * @param array $opts
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator|\Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection|\Illuminate\Support\Collection
      */
-    function get(Request $request = null, array &$opts = [])
+    public function get(Request $request = null, array &$opts = [])
     {
         if (!$request)
             $request = request();
@@ -290,12 +287,12 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
      * Cast to Json
      * @return mixed
      */
-    function jsonSerialize()
+    public function jsonSerialize()
     {
         return $this->getData();
     }
 
-    function getData()
+    public function getData()
     {
         //TODO!
         $query = $this->getQuery();

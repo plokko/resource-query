@@ -20,16 +20,18 @@ class FilterCondition
         $defaultValue = null,
         $applyIf = null,
         /** @var Callable|null */
-        $valueFormatter = null;
-
+        $valueFormatter = null,
+        /** @var FilterBuilder */
+        $parent;
     /**
      * FilterCondition constructor.
      * @param string $name Field name
      */
-    function __construct(string $name)
+    function __construct(string $name,FilterBuilder $parent)
     {
         $this->name = $name;
         $this->field = $name;
+        $this->parent = $parent;
     }
 
     function __get($name)
@@ -195,6 +197,28 @@ class FilterCondition
     function isApplicable(array $filterData)
     {
         return !$this->applyIf || ($this->applyIf)($filterData, $this);
+    }
+
+    /**
+     * Add a new filter or update an existing one
+     * @param string $name
+     * @param callable|string $condition
+     * @param null $field
+     * @return FilterCondition
+     */
+    public function add($name, $condition = null, $field = null): FilterCondition{
+        return $this->parent->add($name, $condition, $field);
+    }
+
+    /**
+     * Set a new filter, if exists overwrite
+     * @param string $name
+     * @param callable|string $condition
+     * @param null $field
+     * @return FilterCondition
+     */
+    public function set($name, $condition = null, $field = null): FilterCondition{
+        return $this->parent->set($name, $condition, $field);
     }
 }
 

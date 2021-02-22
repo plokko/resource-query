@@ -11,9 +11,9 @@ class QueryBuilder extends ResourceQuery
      * QueryBuilder constructor.
      * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Eloquent\Builder $query
      */
-    function __construct($query)
+    function __construct($query,Request $request=null)
     {
-        parent::__construct();
+        parent::__construct($request);
         $this->query = $query;
     }
 
