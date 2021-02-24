@@ -8,15 +8,15 @@ class FilterBuilder implements \ArrayAccess
     /**@var FilterCondition[] */
     private $filters = [];
     /** @var null|string Filters query parameter*/
-    public $filterParameter='filter';
+    public $filterParameter='filters';
 
     /**
      * Set filters query parameter
      * @param null|string $field
      * @return $this
      */
-    public function setQueryParameter($field=null){
-        $this->filterParameter = $field;
+    public function setFiltersParameter($field=null){
+        $this->filtersRoot = $field;
         return $this;
     }
     /**

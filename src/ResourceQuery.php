@@ -294,9 +294,7 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
 
     public function getData()
     {
-        //TODO!
-        $query = $this->getQuery();
-
+        return $this->toResource($this->request);
     }
 
     /**
@@ -307,5 +305,9 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
     public function toResponse($request)
     {
         return $this->toResource($request)->toResponse($request);
+    }
+
+    public function __toString(){
+        return json_encode($this->jsonSerialize());
     }
 }

@@ -108,7 +108,7 @@ class ResourceQuery {
             Object.assign(data, this.filters);
         }
         // OrderBy
-        if (this.order_by.length > 0) {
+        if (this.order_by && this.order_by.length > 0) {
             data[this.orderParameter] = (this.order_by.map(v => Array.isArray(v) ? v.join(':') : v)).join(',');
         }
         data.page = this.page;
@@ -243,7 +243,7 @@ class Paginator {
         this.data = [];
         this._query = query;
         this.loading = false;
-
+        this._lastMeta = null;
         //this._loadData(responseData);
         if (prefetch)
             this.loadMore();
@@ -254,14 +254,15 @@ class Paginator {
      * @returns {boolean}
      */
     hasMore() {
-        return this._lastMeta && this._lastMeta.current_page && this._lastMeta.current_page < this._lastMeta.last_page;
+        return this._lastMeta===null || (this._lastMeta && this._lastMeta.current_page && this._lastMeta.current_page < this._lastMeta.last_page);
     }
 
     /**
      * @private
      */
     _loadData(r) {
-        this.data = this.data.concat(r.data);
+        if(r.data)
+            this.data = this.data.concat(r.data);
         this._lastMeta = r.meta;
         this.current_page = r.meta && r.meta.current_page;
         this.last_page = r.meta && r.meta.last_page;
