@@ -152,7 +152,7 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
     protected function getFilterData(Request $request): array
     {
         $data = $request->input($this->filters->filterParameter,[]);
-        return $data;
+        return is_array($data)?$data:[$data];
     }
 
     /**

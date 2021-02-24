@@ -1,3 +1,24 @@
+/**
+ * Flattern parameters to query string array
+ * @param {Object|array} params
+ * @param {string|null} prefix
+ * @returns {{}}
+ */
+function flatternURLParams(params,prefix){
+    let data= {};
+
+    for(let k in params){
+        let v = params[k];
+        let key = prefix?`${prefix}[${k}]`:k;
+        if(typeof v  !== 'object' && typeof v  !== 'array')
+            data[key] = v;
+        else{
+            Object.assign(data,flatternURLParams(v,key));
+        }
+    }
+    return data;
+}
+
 class ResourceQuery {
     /**
      *
@@ -9,7 +30,7 @@ class ResourceQuery {
         this.filters = {};
         this.order_by = [];
         this.page = 1;
-        this.filterParameter = null;
+        this.filterParameter = 'filters';
         this.orderParameter = 'order_by';
         this.pageSize = null;
         if (opt) {
@@ -100,13 +121,9 @@ class ResourceQuery {
      * @returns {Promise<Object>}
      */
     get(opt) {
-        let data = {};
         // Filters
-        if (this.filterParameter) {
-            data[this.filterParameter] = this.filters;
-        } else {
-            Object.assign(data, this.filters);
-        }
+        let data = flatternURLParams(this.filters,this.filterParameter);
+
         // OrderBy
         if (this.order_by && this.order_by.length > 0) {
             data[this.orderParameter] = (this.order_by.map(v => Array.isArray(v) ? v.join(':') : v)).join(',');
@@ -116,8 +133,6 @@ class ResourceQuery {
         let method = this.method.toLowerCase();
 
         let params = null;
-
-
         let cancelToken = opt && opt.cancelToken && opt.cancelToken.token;
 
         let cfg = Object.assign({},
@@ -139,7 +154,6 @@ class ResourceQuery {
 
         // Execute query
         return new Promise((resolve, reject) => {
-
             let rq = axios(cfg)
                 .then(r => {
                     if (r && r.data) {
