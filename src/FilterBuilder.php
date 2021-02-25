@@ -9,7 +9,12 @@ class FilterBuilder implements \ArrayAccess
     private $filters = [];
     /** @var null|string Filters query parameter*/
     public $filterParameter='filters';
+    /** @var ResourceQuery*/
+    private $parent;
 
+    function __construct($parent){
+        $this->parent = $parent;
+    }
     /**
      * Set filters query parameter
      * @param null|string $field
@@ -81,6 +86,29 @@ class FilterBuilder implements \ArrayAccess
             $cnd->field($field);
         $this->filters[$name] = $cnd;
         return $cnd;
+    }
+
+    /**
+     * Add a new filter or update an existing one
+     * @param string $name
+     * @param callable|string $condition
+     * @param null $field
+     * @return FilterCondition
+     */
+    function filter($name, $condition = null, $field = null): FilterCondition
+    {
+        return $this->add($name,$condition,$field);
+    }
+
+    /**
+     * Add or updates a sorting setting
+     * @param string $name
+     * @param string|null $field
+     * @return OrderParameter
+     */
+    function orderBy($name, $field = null, $direction = null): OrderParameter
+    {
+        return $this->parent->orderBy($name,$field,$direction);
     }
 
     /**

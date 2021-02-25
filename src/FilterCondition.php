@@ -220,5 +220,36 @@ class FilterCondition
     public function set($name, $condition = null, $field = null): FilterCondition{
         return $this->parent->set($name, $condition, $field);
     }
+    /**
+     * Remove itself from filter parameters
+     * @return FilterBuilder
+     */
+    function remove(){
+        $this->parent->remove($this->name);
+        return $this->parent;
+    }
+
+    /**
+     * Add a new filter or update an existing one
+     * @param string $name
+     * @param callable|string $condition
+     * @param null $field
+     * @return FilterCondition
+     */
+    function filter($name, $condition = null, $field = null): FilterCondition
+    {
+        return $this->parent->add($name,$condition,$field);
+    }
+
+    /**
+     * Add or updates a sorting setting
+     * @param string $name
+     * @param string|null $field
+     * @return OrderParameter
+     */
+    function orderBy($name, $field = null, $direction = null): OrderParameter
+    {
+        return $this->parent->orderBy($name,$field,$direction);
+    }
 }
 

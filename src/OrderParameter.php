@@ -15,13 +15,16 @@ class OrderParameter
         $field,
         $direction = null,
         $defaultOrder = 'asc',
-        $use_default = false;
+        $default = false,
+        /** @var OrderingBuilder */
+        $parent;
 
-    function __construct($name, $field = null, $order = null)
+    function __construct($name, OrderingBuilder $parent)
     {
         $this->name = $name;
-        $this->field = $field;
-        $this->direction = $order;
+        $this->field = $name;
+        $this->parent = $parent;
+        $this->direction = null;
     }
 
     function __get($name)
@@ -53,6 +56,16 @@ class OrderParameter
     public function defaultOrder($order): OrderParameter
     {
         $this->defaultOrder = $order == 'desc' ? 'desc' : 'asc';
+        return $this;
+    }
+
+    /**
+     * Set as default sorting
+     * @param bool $default
+     * @return $this
+     */
+    function default($default=true){
+        $this->default=$default;
         return $this;
     }
 
@@ -93,5 +106,57 @@ class OrderParameter
     {
         //TODO
         return true;
+    }
+
+
+    /**
+     * @param string $name
+     * @param string|null $field
+     * @return OrderParameter
+     */
+    function add($name, $field = null, $direction = null): OrderParameter
+    {
+        return $this->parent->add($name,$field,$direction);
+    }
+
+    /**
+     * @param string $name
+     * @param string|null $field
+     * @return OrderParameter
+     */
+    function set($name, $field = null, $direction = null): OrderParameter
+    {
+        return $this->parent->set($name,$field,$direction);
+    }
+
+    /**
+     * Remove itself from ordering parameters
+     * @return OrderingBuilder
+     */
+    function remove(){
+        $this->parent->remove($this->name);
+        return $this->parent;
+    }
+    /**
+     * Add a new filter or update an existing one
+     * @param string $name
+     * @param callable|string $condition
+     * @param null $field
+     * @return FilterCondition
+     */
+    function filter($name, $condition = null, $field = null): FilterCondition
+    {
+        return $this->parent->filter($name,$condition,$field);
+    }
+
+    /**
+     * Add or updates a sorting setting
+     * @param string $name
+     * @param string|null $field
+     * @return OrderParameter
+     */
+    function orderBy($name, $field = null, $direction = null): OrderParameter
+    {
+        return $this->parent->add($name,$field,$direction);
     }
 }

@@ -42,8 +42,8 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
     function __construct(Request $request=null)
     {
         $this->request = $request?:request();
-        $this->filters = new FilterBuilder();
-        $this->orderBy = new OrderingBuilder();
+        $this->filters = new FilterBuilder($this);
+        $this->orderBy = new OrderingBuilder($this);
         $this->init();
     }
 
@@ -66,6 +66,28 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
         }
     }
 
+    /**
+     * Add a new filter or update an existing one
+     * @param string $name
+     * @param callable|string $condition
+     * @param null $field
+     * @return FilterCondition
+     */
+    function filter($name, $condition = null, $field = null): FilterCondition
+    {
+        return $this->filters->add($name,$condition,$field);
+    }
+
+    /**
+     * Add or updates a sorting setting
+     * @param string $name
+     * @param string|null $field
+     * @return OrderParameter
+     */
+    function orderBy($name, $field = null, $direction = null): OrderParameter
+    {
+        return $this->orderBy->add($name,$field,$direction);
+    }
 
     /**
      * @param string|null $resourceClass
@@ -125,6 +147,7 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
 
         $filterData = $this->getFilterData($request);
         $orderData = $this->getOrderData($request);
+        dd(compact('orderData'));
 
         $appliedFilters = [];
         $ordersBy = [];
@@ -168,8 +191,13 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
             if (!is_array($data))
                 $data = explode(',', $data);
             $data = array_map(function ($v) {
-                $e = explode(':', $v);
-                return count($e) > 1 ? $e : $e[0];
+                if($v[0]=='-'){
+                    $field = substr($v,1);
+                    return [$field,'desc'];
+                }else{
+                    $e = explode(':', $v);
+                    return count($e) > 1 ? $e : $e[0];
+                }
             }, $data);
         }
         return $data;

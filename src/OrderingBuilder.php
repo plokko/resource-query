@@ -13,6 +13,12 @@ class OrderingBuilder implements \ArrayAccess
     /** @var string Query parameter used for ordering */
     public $orderField='order_by';
 
+    /** @var ResourceQuery*/
+    private $parent;
+    function __construct($parent){
+        $this->parent = $parent;
+    }
+
     /**
      * Set query parameter used for ordering
      * @param null|string $param
@@ -69,6 +75,7 @@ class OrderingBuilder implements \ArrayAccess
     }
 
     /**
+     * Add or updates a sorting field
      * @param string $name
      * @param string|null $field
      * @return OrderParameter
@@ -76,7 +83,7 @@ class OrderingBuilder implements \ArrayAccess
     function add($name, $field = null, $direction = null): OrderParameter
     {
         if(!isset($this->parameters[$name])){
-            $this->parameters[$name] = new OrderParameter($name);
+            $this->parameters[$name] = new OrderParameter($name,$this);
         }
         if ($field !== null)
             $this->parameters[$name]->field($field);
@@ -86,13 +93,14 @@ class OrderingBuilder implements \ArrayAccess
     }
 
     /**
+     * Add or replaces a sorting field
      * @param string $name
      * @param string|null $field
      * @return OrderParameter
      */
     function set($name, $field = null, $direction = null): OrderParameter
     {
-        $cnd = new OrderParameter($name);
+        $cnd = new OrderParameter($name,$this);
         if ($field !== null)
             $cnd->field($field);
         if ($direction !== null)
@@ -100,6 +108,30 @@ class OrderingBuilder implements \ArrayAccess
         $this->parameters[$name] = $cnd;
         return $cnd;
     }
+
+    /**
+     * Add a new filter or update an existing one
+     * @param string $name
+     * @param callable|string $condition
+     * @param null $field
+     * @return FilterCondition
+     */
+    function filter($name, $condition = null, $field = null): FilterCondition
+    {
+        return $this->parent->filter($name,$condition,$field);
+    }
+
+    /**
+     * Add or updates a sorting setting
+     * @param string $name
+     * @param string|null $field
+     * @return OrderParameter
+     */
+    function orderBy($name, $field = null, $direction = null): OrderParameter
+    {
+        return $this->add($name,$field,$direction);
+    }
+
 
     public function offsetExists($offset)
     {
