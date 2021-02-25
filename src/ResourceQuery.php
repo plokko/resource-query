@@ -147,8 +147,7 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
 
         $filterData = $this->getFilterData($request);
         $orderData = $this->getOrderData($request);
-        dd(compact('orderData'));
-
+        
         $appliedFilters = [];
         $ordersBy = [];
         $this->applyFilters($query, $filterData, $appliedFilters);
@@ -191,13 +190,16 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
             if (!is_array($data))
                 $data = explode(',', $data);
             $data = array_map(function ($v) {
-                if($v[0]=='-'){
-                    $field = substr($v,1);
-                    return [$field,'desc'];
-                }else{
-                    $e = explode(':', $v);
-                    return count($e) > 1 ? $e : $e[0];
+                switch($v[0]){
+                    case '-':
+                        return [substr($v,1),'desc'];
+                    case '^':
+                        return [substr($v,1),'asc'];
+                    default:
+                        $e = explode(':', $v);
+                        return count($e) > 1 ? $e : $e[0];
                 }
+
             }, $data);
         }
         return $data;
