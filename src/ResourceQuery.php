@@ -147,7 +147,7 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
 
         $filterData = $this->getFilterData($request);
         $orderData = $this->getOrderData($request);
-        
+
         $appliedFilters = [];
         $ordersBy = [];
         $this->applyFilters($query, $filterData, $appliedFilters);

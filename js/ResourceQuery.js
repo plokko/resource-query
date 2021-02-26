@@ -205,6 +205,15 @@ class ResourceQuery {
     }
 }
 
+/**
+ * Query result helper class, returned by ResourceQuery.getResult()
+ *
+ * @property {int} current_page Current page number
+ * @property {int} last_page Last page number
+ * @property {int} per_page Items per page
+ * @property {int} total Total items available
+ * @property {Array} order_by Ordering information as an array of string/array (ex.: ['name',['email','desc'],['id','asc']] )
+ */
 class QueryResult {
     constructor(responseData, query) {
         this._response = responseData;
@@ -216,6 +225,7 @@ class QueryResult {
             this.last_page = responseData.meta.last_page;
             this.per_page = responseData.meta.per_page;
             this.total = responseData.meta.total;
+            this.order_by = responseData.order_by || [];
         }
     }
 
