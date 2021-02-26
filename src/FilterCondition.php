@@ -4,7 +4,7 @@ namespace plokko\ResourceQuery;
 
 /**
  * Class FilterCondition
- * @package App\ResourceQuery
+ * @package plokko\ResourceQuery
  *
  * @property-read string $name
  * @property-read $field

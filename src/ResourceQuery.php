@@ -11,7 +11,7 @@ use JsonSerializable;
 
 /**
  * Class ResourceQuery
- * @package App\ResourceQuery
+ * @package  plokko\ResourceQuery
  *
  * @property-read FilterBuilder $filters
  * @property-read OrderingBuilder $orderBy

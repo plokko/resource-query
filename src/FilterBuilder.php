@@ -2,7 +2,10 @@
 
 namespace plokko\ResourceQuery;
 
-
+/**
+ * ResourceQuery helper class for building and managing filters
+ * @package plokko\ResourceQuery
+ */
 class FilterBuilder implements \ArrayAccess
 {
     /**@var FilterCondition[] */

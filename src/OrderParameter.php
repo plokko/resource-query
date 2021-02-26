@@ -1,10 +1,9 @@
 <?php
-
 namespace plokko\ResourceQuery;
 
 /**
  * Class OrderParameter
- * @package App\ResourceQuery
+ * @package plokko\ResourceQuery
  * @property-read string $name
  * @property-read string $field
  * @property-read string $defaultOrder

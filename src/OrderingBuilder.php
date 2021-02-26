@@ -2,13 +2,15 @@
 
 namespace plokko\ResourceQuery;
 
+/**
+ * ResourceQuery helper class for building and managing sorting
+ * @package plokko\ResourceQuery
+ */
 class OrderingBuilder implements \ArrayAccess
 {
     private
         /**@var OrderParameter[] */
-        $parameters = [],
-        /** @var array|null */
-        $defaultOrder = null;
+        $parameters = [];
 
     /** @var string Query parameter used for ordering */
     public $orderField='order_by';
@@ -29,13 +31,6 @@ class OrderingBuilder implements \ArrayAccess
         return $this;
     }
 
-    /**
-     * @param array|null $defaultOrder
-     */
-    function defaultOrder($defaultOrder)
-    {
-        $this->defaultOrder = $defaultOrder;
-    }
 
     /**
      * Remove a filter condition by name
@@ -156,6 +151,9 @@ class OrderingBuilder implements \ArrayAccess
     }
 
 
+    protected function getDefaultSortingCondtions(){
+        return array_filter($this->parameters,function(OrderParameter $e){ return $e->default;});
+    }
     public function applyConditions($query, array $orderData, array &$appliedOrdering = [])
     {
         foreach ([$orderData, $this->defaultOrder] as $i => $data) {

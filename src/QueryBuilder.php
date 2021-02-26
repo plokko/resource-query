@@ -2,14 +2,18 @@
 
 namespace plokko\ResourceQuery;
 
-
+/**
+ * ResourceQuery helper for in-place query definition
+ * @package plokko\ResourceQuery
+ */
 class QueryBuilder extends ResourceQuery
 {
     protected $query;
 
     /**
-     * QueryBuilder constructor.
-     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Eloquent\Builder $query
+     * QueryBuilder constructor, base query must be passed here
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Eloquent\Builder $query Base query
+     * @param Request|null $request optional request, if not set current request will be used
      */
     function __construct($query,Request $request=null)
     {
