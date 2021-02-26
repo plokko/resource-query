@@ -9,7 +9,7 @@ namespace plokko\ResourceQuery;
 class OrderingBuilder implements \ArrayAccess
 {
     private
-        /**@var OrderParameter[] */
+        /**@var OrderParameter[] Defined sorting conditions with field_name as key*/
         $parameters = [];
 
     /** @var string Query parameter used for ordering */
@@ -151,42 +151,47 @@ class OrderingBuilder implements \ArrayAccess
     }
 
 
-    protected function getDefaultSortingCondtions(){
+    /**
+     * Get default sorting conditions
+     * @return OrderParameter[] Sorting conditions applied by default
+     */
+    protected function getDefaultSortingParameters(){
         return array_filter($this->parameters,function(OrderParameter $e){ return $e->default;});
     }
+
+    /**
+     * Apply sorting conditions to the query
+     * @private
+     * @param $query
+     * @param array $orderData
+     * @param array $appliedOrdering
+     */
     public function applyConditions($query, array $orderData, array &$appliedOrdering = [])
     {
-        foreach ([$orderData, $this->defaultOrder] as $i => $data) {
-            // Default order
-            if ($i > 0) {
-                if (!$data || count($appliedOrdering) > 0) {
-                    break;
+        //Filter order data with defined conditions
+        $orders = array_filter($orderData,function ($order){
+            $field = $order[0];
+            return isset($this->parameters[$field]);
+        });
+
+        if(count($orders)==0){
+            //Apply default conditions
+            $defaultCnds = $this->getDefaultSortingParameters();
+            foreach($defaultCnds AS $cnd){
+                $applied = $cnd->apply($query,null,true);
+                if ($applied) {
+                    $appliedOrdering[] = $applied;
                 }
             }
-            //
-            foreach ($data as $order) {
-                $field = $dir = null;
-                if (is_array($order)) {
-                    if (!isset($order[0]))
-                        continue;
-                    $field = $order[0];
-                    if (isset($order[1]))
-                        $dir = $order[1];
-                } else {
-                    $startsWith = substr($order, 0, 1);
-                    if ($startsWith == '+' || $startsWith == '-') {
-                        $field = substr($order, 1);
-                        $dir = $startsWith == '+' ? 'asc' : 'desc';
-                    } else {
-                        $field = $order;
-                    }
-                }
-                ///
-                if (isset($this->parameters[$field])) {
-                    $applied = $this->parameters[$field]->apply($query, $dir);
-                    if ($applied) {
-                        $appliedOrdering[] = $applied;
-                    }
+        }else{
+            //apply conditions
+            foreach($orders AS $order){
+                $field = $order[0];
+                $dir = $order[1];
+
+                $applied = $this->parameters[$field]->apply($query, $dir);
+                if ($applied) {
+                    $appliedOrdering[] = $applied;
                 }
             }
         }

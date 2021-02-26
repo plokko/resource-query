@@ -185,7 +185,7 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
      */
     protected function getOrderData(Request $request)
     {
-        $data = $request->input($this->orderBy->orderField);
+        $data = $request->input($this->orderBy->orderField,[]);
         if ($data) {
             if (!is_array($data))
                 $data = explode(',', $data);
@@ -226,9 +226,7 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
      */
     protected function applyOrdering($query, ?array $orderBy = [], array &$ordersBy = [])
     {
-        if ($orderBy) {
-            $this->orderBy->applyConditions($query, $orderBy, $ordersBy);
-        }
+        $this->orderBy->applyConditions($query, $orderBy, $ordersBy);
         return $query;
     }
 

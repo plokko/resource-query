@@ -6,17 +6,17 @@ namespace plokko\ResourceQuery;
  * @package plokko\ResourceQuery
  * @property-read string $name
  * @property-read string $field
- * @property-read string $defaultOrder
  */
 class OrderParameter
 {
     private $name,
         $field,
         $direction = null,
-        $defaultOrder = 'asc',
-        $default = false,
         /** @var OrderingBuilder */
         $parent;
+
+    public
+        $default = false;
 
     function __construct($name, OrderingBuilder $parent)
     {
@@ -48,19 +48,10 @@ class OrderParameter
         return $this;
     }
 
-    /**
-     * @param string $order 'asc' or 'desc'
-     * @return $this
-     */
-    public function defaultOrder($order): OrderParameter
-    {
-        $this->defaultOrder = $order == 'desc' ? 'desc' : 'asc';
-        return $this;
-    }
 
     /**
      * Set as default sorting
-     * @param bool $default
+     * @param boolean|string $default
      * @return $this
      */
     function default($default=true){
@@ -78,11 +69,10 @@ class OrderParameter
         return $this;
     }
 
-    function apply($query, $dir)
+    function apply($query, $dir,$asDefault=false)
     {
-        $direction = ($dir === 'asc' || $dir === 'desc') ?
-            $dir :
-            $this->defaultOrder;
+        $direction = $dir==='desc' ||($asDefault && $this->default === 'desc')?'desc':'asc';
+
         //Force specified direction
         if ($this->direction) {
             $direction = $this->direction;
