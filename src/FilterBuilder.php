@@ -27,13 +27,16 @@ class FilterBuilder implements \ArrayAccess
         $this->filtersRoot = $field;
         return $this;
     }
+
     /**
      * Remove a filter by name
      * @param string $name
+     * @return $this
      */
     function remove($name)
     {
-        unset($this[$name]);
+        unset($this->filters[$name]);
+        return $this;
     }
 
     /**
@@ -45,12 +48,12 @@ class FilterBuilder implements \ArrayAccess
     }
 
     /**
-     * @param string $name
-     * @return FilterCondition
+     * Return a filter by name if set, null otherwise
+     * @param string $name Filter label
+     * @return FilterCondition|null
      */
-    function __get($name)
-    {
-        return $this->add($name);
+    function get($name){
+        return isset($this->filters[$name])?$this->filters[$name]:null;
     }
 
     /**
@@ -63,7 +66,7 @@ class FilterBuilder implements \ArrayAccess
     function add($name, $condition = null, $field = null): FilterCondition
     {
         if(!isset($this->filters[$name])){
-            $this->filters[$name] = new FilterCondition($name,$this);
+            $this->filters[$name] = new FilterCondition($name,$this->parent);
         }
         if ($condition)
             $this->filters[$name]->condition($condition);
@@ -82,7 +85,7 @@ class FilterBuilder implements \ArrayAccess
      */
     function set($name, $condition = null, $field = null): FilterCondition
     {
-        $cnd = new FilterCondition($name,$this);
+        $cnd = new FilterCondition($name,$this->parent);
         if ($condition)
             $cnd->condition($condition);
         if ($field)
@@ -114,21 +117,6 @@ class FilterBuilder implements \ArrayAccess
         return $this->parent->orderBy($name,$field,$direction);
     }
 
-    /**
-     * Called as name([condition][,field]), ex: ->my_field('=','field')
-     * @param string $name
-     * @param array $arguments
-     * @return FilterCondition
-     */
-    function __call($name, $arguments): FilterCondition
-    {
-        return $this->add(
-            $name,
-            optional($arguments[0]),
-            optional($arguments[1])
-        );
-    }
-
     public function offsetExists($offset)
     {
         return isset($this->filters[$offset]);
@@ -140,7 +128,7 @@ class FilterBuilder implements \ArrayAccess
      */
     public function offsetGet($offset)
     {
-        return $this->$offset;
+        return $this->get($offset);
     }
 
     public function offsetSet($offset, $value)
@@ -150,10 +138,11 @@ class FilterBuilder implements \ArrayAccess
 
     public function offsetUnset($offset)
     {
-        unset($this->filters[$offset]);
+        $this->remove($offset);
     }
 
     /**
+     * @internal
      * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Eloquent\Builder $query
      * @param array $filterData
      * @param array $appliedFilters

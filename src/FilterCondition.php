@@ -2,6 +2,8 @@
 
 namespace plokko\ResourceQuery;
 
+use plokko\ResourceQuery\Traits\ResourceQueryFallbackTrait;
+
 /**
  * Class FilterCondition
  * @package plokko\ResourceQuery
@@ -13,6 +15,8 @@ namespace plokko\ResourceQuery;
  */
 class FilterCondition
 {
+    use ResourceQueryFallbackTrait;
+
     private
         $name = null,
         $field = null,
@@ -21,13 +25,13 @@ class FilterCondition
         $applyIf = null,
         /** @var Callable|null */
         $valueFormatter = null,
-        /** @var FilterBuilder */
+        /** @var ResourceQuery */
         $parent;
     /**
      * FilterCondition constructor.
      * @param string $name Field name
      */
-    function __construct(string $name,FilterBuilder $parent)
+    function __construct(string $name,ResourceQuery $parent)
     {
         $this->name = $name;
         $this->field = $name;
@@ -91,23 +95,6 @@ class FilterCondition
     }
 
     /**
-     * Only apply this condition if another filter is present
-     * @param string $name,... Required field name/names
-     * @return FilterCondition
-     */
-    function applyIfPresent(...$name): FilterCondition
-    {
-        $this->applyIf(function ($filters, $condition) use ($name) {
-            foreach ($name as $k) {
-                if (empty($filters[$k]))
-                    return false;
-            }
-            return true;
-        });
-        return $this;
-    }
-
-    /**
      * Apply this filter only if condition is met
      * @param callable $cnd condition, return boolean, parameters:
      * @return FilterCondition
@@ -119,26 +106,54 @@ class FilterCondition
     }
 
     /**
-     * Only apply this condition if another filter is NOT present
-     * @param string $name filtered field name
+     * Only apply this condition if all the specified filters are present on the query
+     * @param string|array $name,... Required field name/names
      * @return FilterCondition
      */
-    function applyIfNotPresent($name): FilterCondition
+    function applyIfPresent(...$name): FilterCondition
     {
-        $name = func_get_args();
-        $this->applyIf(function ($filters, $condition) use ($name) {
-            foreach ($name as $k) {
-                if (!empty($filters[$k]))
-                    return false;
+        if(count($name)>0){
+            if(is_array($name[0])){
+                $name = $name[0];
             }
-            return true;
-        });
+            $this->applyIf(function ($filters, $condition) use ($name) {
+                foreach ($name as $k) {
+                    if (empty($filters[$k]))
+                        return false;
+                }
+                return true;
+            });
+        }
         return $this;
     }
 
     /**
+     * Only apply this condition if all the filters specifiead are NOT present on the query
+     * @param string|array $name,... Required field name/names
+     * @return FilterCondition
+     */
+    function applyIfNotPresent(...$name): FilterCondition
+    {
+        if(count($name)>0){
+            if(is_array($name[0])){
+                $name = $name[0];
+            }
+            $this->applyIf(function ($filters, $condition) use ($name) {
+                foreach ($name as $k) {
+                    if (!empty($filters[$k]))
+                        return false;
+                }
+                return true;
+            });
+        }
+        return $this;
+    }
+
+
+    /**
      * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Eloquent\Builder $query
      * @param array $filterData
+     * @internal
      */
     function apply($query, array $filterData, array &$appliedFilters = [])
     {
@@ -183,6 +198,7 @@ class FilterCondition
      * Return true if the filter can be applied to the query
      * @param array $filterData
      * @return bool
+     * @internal
      */
     function shouldBeApplied(array $filterData): bool
     {
@@ -193,6 +209,7 @@ class FilterCondition
      * Return true if apply conditions are met
      * @param array $filterData
      * @return bool
+     * @internal
      */
     function isApplicable(array $filterData)
     {
@@ -200,56 +217,12 @@ class FilterCondition
     }
 
     /**
-     * Add a new filter or update an existing one
-     * @param string $name
-     * @param callable|string $condition
-     * @param null $field
-     * @return FilterCondition
-     */
-    public function add($name, $condition = null, $field = null): FilterCondition{
-        return $this->parent->add($name, $condition, $field);
-    }
-
-    /**
-     * Set a new filter, if exists overwrite
-     * @param string $name
-     * @param callable|string $condition
-     * @param null $field
-     * @return FilterCondition
-     */
-    public function set($name, $condition = null, $field = null): FilterCondition{
-        return $this->parent->set($name, $condition, $field);
-    }
-    /**
      * Remove itself from filter parameters
      * @return FilterBuilder
      */
     function remove(){
         $this->parent->remove($this->name);
         return $this->parent;
-    }
-
-    /**
-     * Add a new filter or update an existing one
-     * @param string $name
-     * @param callable|string $condition
-     * @param null $field
-     * @return FilterCondition
-     */
-    function filter($name, $condition = null, $field = null): FilterCondition
-    {
-        return $this->parent->add($name,$condition,$field);
-    }
-
-    /**
-     * Add or updates a sorting setting
-     * @param string $name
-     * @param string|null $field
-     * @return OrderParameter
-     */
-    function orderBy($name, $field = null, $direction = null): OrderParameter
-    {
-        return $this->parent->orderBy($name,$field,$direction);
     }
 }
 

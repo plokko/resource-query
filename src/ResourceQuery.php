@@ -68,14 +68,35 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
 
     /**
      * Add a new filter or update an existing one
-     * @param string $name
-     * @param callable|string $condition
-     * @param null $field
+     * @param string $name Filter name
+     * @param callable|string $condition Filter condition
+     * @param null|string $field Query field, if null or not specified filter name will be used
      * @return FilterCondition
      */
     function filter($name, $condition = null, $field = null): FilterCondition
     {
         return $this->filters->add($name,$condition,$field);
+    }
+
+    /**
+     * Remove a filter by it's name
+     * @param string $name Filter name
+     * @return $this
+     */
+    function removeFilter($name)
+    {
+        $this->filters->remove($name);
+        return $this;
+    }
+
+    /**
+     * Check if a filter is defined
+     * @param string $name Filter name
+     * @return boolean
+     */
+    function filterExists($name)
+    {
+        return isset($this->filters[$name]);
     }
 
     /**

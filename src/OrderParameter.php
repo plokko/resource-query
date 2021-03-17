@@ -1,6 +1,8 @@
 <?php
 namespace plokko\ResourceQuery;
 
+use plokko\ResourceQuery\Traits\ResourceQueryFallbackTrait;
+
 /**
  * Class OrderParameter
  * @package plokko\ResourceQuery
@@ -9,16 +11,19 @@ namespace plokko\ResourceQuery;
  */
 class OrderParameter
 {
+    use ResourceQueryFallbackTrait;
+
     private $name,
         $field,
         $direction = null,
-        /** @var OrderingBuilder */
+        /** @var ResourceQuery */
         $parent;
 
     public
-        $default = false;
+        $default = false,
+        $inverted = false;
 
-    function __construct($name, OrderingBuilder $parent)
+    function __construct($name, ResourceQuery $parent)
     {
         $this->name = $name;
         $this->field = $name;
@@ -50,8 +55,8 @@ class OrderParameter
 
 
     /**
-     * Set as default sorting
-     * @param boolean|string $default
+     * Set field as default (applied if no sorting conditions are specified by the user)
+     * @param boolean|string $default Set to false for not default, true or 'asc' for default with ascending order or 'desc' for default with descending order.
      * @return $this
      */
     function default($default=true){
@@ -60,7 +65,8 @@ class OrderParameter
     }
 
     /**
-     * @param string|null $direction 'asc', 'desc' or null if
+     * Set forced sorting direction
+     * @param string|null $direction 'asc', 'desc' or null if user specified
      * @return $this
      */
     public function direction($direction): OrderParameter
@@ -69,6 +75,24 @@ class OrderParameter
         return $this;
     }
 
+    /**
+     * Invert sorting direction: if set 'asc' will be applied as descending order and vice versa
+     * @param bool $invert True if should be inverted
+     * @return $this
+     */
+    function invert($invert=true){
+        $this->inverted = $invert;
+        return $this;
+    }
+
+    /**
+     * Apply condition to the query
+     * @private
+     * @param $query Query
+     * @param null|string $dir Direction ('asc' or 'desc')
+     * @param false $asDefault True if it's applied as a default condition
+     * @return array|null return applied sorting or null if was not applied
+     */
     function apply($query, $dir,$asDefault=false)
     {
         $direction = $dir==='desc' ||($asDefault && $this->default === 'desc')?'desc':'asc';
@@ -79,18 +103,24 @@ class OrderParameter
         }
 
         if ($this->shouldApply()) {
+            $dir = $this->inverted?($direction==='asc'?'desc':'asc'):$direction;
             if (is_callable($this->field)) {
                 //callback implementation
-                ($this->field)($query, $direction);
+                ($this->field)($query, $dir);
                 return [$this->name, $direction];
             } else {
-                $query->orderBy($this->field, $direction);
+                $query->orderBy($this->field, $dir);
                 return [$this->name, $direction];
             }
         }
         return null;
     }
 
+    /**
+     * Check conditions and tells if the sorting should be applied
+     * @protected
+     * @return bool
+     */
     protected function shouldApply()
     {
         //TODO
@@ -99,53 +129,11 @@ class OrderParameter
 
 
     /**
-     * @param string $name
-     * @param string|null $field
-     * @return OrderParameter
-     */
-    function add($name, $field = null, $direction = null): OrderParameter
-    {
-        return $this->parent->add($name,$field,$direction);
-    }
-
-    /**
-     * @param string $name
-     * @param string|null $field
-     * @return OrderParameter
-     */
-    function set($name, $field = null, $direction = null): OrderParameter
-    {
-        return $this->parent->set($name,$field,$direction);
-    }
-
-    /**
      * Remove itself from ordering parameters
      * @return OrderingBuilder
      */
     function remove(){
         $this->parent->remove($this->name);
         return $this->parent;
-    }
-    /**
-     * Add a new filter or update an existing one
-     * @param string $name
-     * @param callable|string $condition
-     * @param null $field
-     * @return FilterCondition
-     */
-    function filter($name, $condition = null, $field = null): FilterCondition
-    {
-        return $this->parent->filter($name,$condition,$field);
-    }
-
-    /**
-     * Add or updates a sorting setting
-     * @param string $name
-     * @param string|null $field
-     * @return OrderParameter
-     */
-    function orderBy($name, $field = null, $direction = null): OrderParameter
-    {
-        return $this->parent->add($name,$field,$direction);
     }
 }

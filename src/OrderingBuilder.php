@@ -17,6 +17,7 @@ class OrderingBuilder implements \ArrayAccess
 
     /** @var ResourceQuery*/
     private $parent;
+
     function __construct($parent){
         $this->parent = $parent;
     }
@@ -78,7 +79,7 @@ class OrderingBuilder implements \ArrayAccess
     function add($name, $field = null, $direction = null): OrderParameter
     {
         if(!isset($this->parameters[$name])){
-            $this->parameters[$name] = new OrderParameter($name,$this);
+            $this->parameters[$name] = new OrderParameter($name,$this->parent);
         }
         if ($field !== null)
             $this->parameters[$name]->field($field);
@@ -95,36 +96,13 @@ class OrderingBuilder implements \ArrayAccess
      */
     function set($name, $field = null, $direction = null): OrderParameter
     {
-        $cnd = new OrderParameter($name,$this);
+        $cnd = new OrderParameter($name,$this->parent);
         if ($field !== null)
             $cnd->field($field);
         if ($direction !== null)
             $cnd->direction($field);
         $this->parameters[$name] = $cnd;
         return $cnd;
-    }
-
-    /**
-     * Add a new filter or update an existing one
-     * @param string $name
-     * @param callable|string $condition
-     * @param null $field
-     * @return FilterCondition
-     */
-    function filter($name, $condition = null, $field = null): FilterCondition
-    {
-        return $this->parent->filter($name,$condition,$field);
-    }
-
-    /**
-     * Add or updates a sorting setting
-     * @param string $name
-     * @param string|null $field
-     * @return OrderParameter
-     */
-    function orderBy($name, $field = null, $direction = null): OrderParameter
-    {
-        return $this->add($name,$field,$direction);
     }
 
 
@@ -150,18 +128,18 @@ class OrderingBuilder implements \ArrayAccess
         unset($this->parameters[$offset]);
     }
 
-
     /**
      * Get default sorting conditions
+     * @internal
      * @return OrderParameter[] Sorting conditions applied by default
      */
     protected function getDefaultSortingParameters(){
-        return array_filter($this->parameters,function(OrderParameter $e){ return $e->default;});
+        return array_filter($this->parameters,function(OrderParameter $e){ return $e->default!==false;});
     }
 
     /**
      * Apply sorting conditions to the query
-     * @private
+     * @internal
      * @param $query
      * @param array $orderData
      * @param array $appliedOrdering
