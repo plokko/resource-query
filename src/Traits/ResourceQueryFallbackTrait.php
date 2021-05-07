@@ -20,7 +20,7 @@ trait ResourceQueryFallbackTrait
      */
     function filter($name, $condition = null, $field = null): FilterCondition
     {
-        return $this->parent->add($name,$condition,$field);
+        return $this->parent->filter($name,$condition,$field);
     }
 
     /**
