@@ -20,7 +20,6 @@ class OrderParameter
         $parent;
 
     public
-        $default = false,
         $inverted = false;
 
     function __construct($name, ResourceQuery $parent)
@@ -53,17 +52,6 @@ class OrderParameter
         return $this;
     }
 
-
-    /**
-     * Set field as default (applied if no sorting conditions are specified by the user)
-     * @param boolean|string $default Set to false for not default, true or 'asc' for default with ascending order or 'desc' for default with descending order.
-     * @return $this
-     */
-    function default($default=true){
-        $this->default=$default;
-        return $this;
-    }
-
     /**
      * Set forced sorting direction
      * @param string|null $direction 'asc', 'desc' or null if user specified
@@ -90,7 +78,6 @@ class OrderParameter
      * @private
      * @param $query Query
      * @param null|string $dir Direction ('asc' or 'desc')
-     * @param false $asDefault True if it's applied as a default condition
      * @return array|null return applied sorting or null if was not applied
      */
     function apply($query, $dir,$asDefault=false)

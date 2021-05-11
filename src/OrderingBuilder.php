@@ -10,7 +10,9 @@ class OrderingBuilder implements \ArrayAccess
 {
     private
         /**@var OrderParameter[] Defined sorting conditions with field_name as key*/
-        $parameters = [];
+        $parameters = [],
+        /** @var null|string[] */
+        $defaultOrder=null;
 
     /** @var string Query parameter used for ordering */
     public $orderField='order_by';
@@ -127,14 +129,14 @@ class OrderingBuilder implements \ArrayAccess
     {
         unset($this->parameters[$offset]);
     }
-
     /**
-     * Get default sorting conditions
-     * @internal
-     * @return OrderParameter[] Sorting conditions applied by default
+     * Set default order (applied if no order parameter are specified in the query)
+     * @param array|null $order
+     * @return $this
      */
-    protected function getDefaultSortingParameters(){
-        return array_filter($this->parameters,function(OrderParameter $e){ return $e->default!==false;});
+    public function setDefaultOrder(array $order=null){
+        $this->defaultOrder = $order;
+        return $this;
     }
 
     /**
@@ -154,18 +156,31 @@ class OrderingBuilder implements \ArrayAccess
 
         if(count($orders)==0){
             //Apply default conditions
-            $defaultCnds = $this->getDefaultSortingParameters();
-            foreach($defaultCnds AS $cnd){
-                $applied = $cnd->apply($query,null,true);
-                if ($applied) {
-                    $appliedOrdering[] = $applied;
+            if($this->defaultOrder){
+                //Apply default sort
+
+                foreach($this->defaultOrder AS $k=>$v){
+                    $field = $v;
+                    $direction = 'asc';
+                    if(!is_int($k)){
+                        $field = $k;
+                        $direction = $v==='desc'?'desc':'asc';
+                    }
+                    $param = $this->parameters[$field];
+                    /** @var OrderParameter $param */
+
+                    $applied = $param->apply($query,$direction,true);
+                    if ($applied) {
+                        $appliedOrdering[] = $applied;
+                    }
                 }
             }
+
         }else{
             //apply conditions
             foreach($orders AS $order){
                 $field = $order[0];
-                $dir = $order[1];
+                $dir = $order[1]??'asc';
 
                 $applied = $this->parameters[$field]->apply($query, $dir);
                 if ($applied) {

@@ -111,6 +111,14 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
     }
 
     /**
+     * @param array|null $order
+     * @return OrderingBuilder
+     */
+    public function setDefaultOrder(array $order=null){
+        return $this->orderBy->setDefaultOrder($order);
+    }
+
+    /**
      * @param string|null $resourceClass
      * @return $this
      */
@@ -218,7 +226,7 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
                         return [substr($v,1),'asc'];
                     default:
                         $e = explode(':', $v);
-                        return count($e) > 1 ? $e : $e[0];
+                        return $e;
                 }
 
             }, $data);

@@ -34,6 +34,16 @@ trait ResourceQueryFallbackTrait
         return $this->parent->orderBy($name,$field,$direction);
     }
 
+    /**
+     * Set default sorting parameters
+     * @param array|null $order
+     * @return $this
+     */
+    public function setDefaultOrder(array $order=null){
+        $this->parent->setDefaultOrder($order);
+        return $this;
+    }
+
     function __call($fn,$args){
         if($fn === 'add' ||$fn === 'set'){
             return call_user_func_array([(($this instanceof OrderParameter)?$this->parent->orderBy:$this->parent->filters), $fn],$args);
