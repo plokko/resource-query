@@ -32,13 +32,13 @@ class ExampleResourceQuery extends ResourceQuery{
 ```
 
 ### Using the builder
-Or by defining it in-place with `QueryBuilder`
+Or by defining it in-place with `ResourceQueryBuilder`
 ```php
-use plokko\ResourceQuery\QueryBuilder;
+use plokko\ResourceQuery\ResourceQueryBuilder;
 
 $query = MyModel::select('id','etc');
 //Add the base query
-$resource =  new QueryBuilder($query);
+$resource =  new ResourceQueryBuilder($query);
 ```
 
 
@@ -56,7 +56,7 @@ class MyController extends Controller {
     }
     public function example2(Request $request){
         $query = MyModel::select('id','etc');
-        $resource =  new QueryBuilder($query);
+        $resource =  new ResourceQueryBuilder($query);
 
         if($request->ajax()){
             return $resource;
@@ -118,8 +118,8 @@ class MyClassResource extends ResourceQuery{
         //Remember to call parent constructor for inizialization
         parent::__construct();
         // Adding filters
-        $this->filters->add('filter1','=','fieldA');
-        $this->filters->add('filter2','like','fieldB');
+        $this->filter('filter1','=','fieldA');
+        $this->filter('filter2','like','fieldB');
         //...
     }
     //...
@@ -129,7 +129,7 @@ class MyClassResource extends ResourceQuery{
 Or by directly calling the resource
 ```php
 $query = MyModel::select('id','etc');
-$resource =  new QueryBuilder($query);
+$resource =  new ResourceQueryBuilder($query);
 // Note: this works also with already defined classes by adding or replacing existing filters
 // Ex. replace lines above with: $resource = new ExampleResourceQuery();
 $resource->filters->add('filter1','=','fieldA');
