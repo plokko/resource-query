@@ -91,7 +91,7 @@ class OrderParameter
 
         if ($this->shouldApply()) {
             $dir = $this->inverted?($direction==='asc'?'desc':'asc'):$direction;
-            if (is_callable($this->field)) {
+            if ($this->field instanceof Closure) {
                 //callback implementation
                 ($this->field)($query, $dir);
                 return [$this->name, $direction];
