@@ -172,6 +172,8 @@ class FilterCondition
                     return $query->where($this->field, 'like', "%$value");
                 case 'like%':
                     return $query->where($this->field, 'like', "$value%");
+                case 'search':
+                    return $query->where($this->field, 'like', '%'.preg_replace('/[ ]+/','%',$v).'%');
                 case 'like':
                 case '!=':
                 case '<>':
@@ -183,6 +185,20 @@ class FilterCondition
                     if (!is_array($value))
                         $value = explode(';', $value);
                     return $query->whereIn($this->field, $value);
+                case 'between':
+                    if (!is_array($value))
+                        $value = explode(';', $value);
+
+                    if(!empty($value[0]) || !empty($value[1])){
+                        if(empty($value[0])){
+                            $query->where($this->field,'<=',$value[1]);
+                        } elseif(empty($value[1])){
+                            $query->where($this->field,'>=',$value[0]);
+                        }else{
+                            $query->whereBetween($this->field,[$value[0],$value[1]]);
+                        }
+                    }
+                    return $query;
                 default:
                     if (is_callable($this->condition)) {
                         return ($this->condition)($query, $value, $this);
