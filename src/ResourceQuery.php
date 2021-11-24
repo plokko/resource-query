@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use IteratorAggregate;
 use JsonSerializable;
+use plokko\ResourceQuery\Resources\BaseResource;
 
 /**
  * Class ResourceQuery
@@ -287,7 +288,7 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
     {
         $opts = [];
         $result = $this->get($request, $opts);
-        $resource = call_user_func([$this->useResource ?: JsonResource::class, 'collection'], $result);
+        $resource = call_user_func([($this->useResource ?: BaseResource::class), 'collection'], $result);
         /** @var JsonResource $resource */
         $resource->additional([
             //'active_filters' => array_unique($opts['applied_filters']),
