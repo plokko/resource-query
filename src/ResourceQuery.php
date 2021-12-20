@@ -136,7 +136,7 @@ abstract class ResourceQuery implements JsonSerializable, Responsable, IteratorA
      */
     final function setPagination($pagination)
     {
-        $this->paginate = $pagination;
+        $this->pagination = $pagination;
         return $this;
     }
 
