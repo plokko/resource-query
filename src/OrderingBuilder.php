@@ -9,18 +9,19 @@ namespace plokko\ResourceQuery;
 class OrderingBuilder implements \ArrayAccess
 {
     private
-        /**@var OrderParameter[] Defined sorting conditions with field_name as key*/
-        $parameters = [],
-        /** @var null|string[] */
-        $defaultOrder=null;
+    /**@var OrderParameter[] Defined sorting conditions with field_name as key*/
+    $parameters = [],
+    /** @var null|string[] */
+    $defaultOrder = null;
 
     /** @var string Query parameter used for ordering */
-    public $orderField='order_by';
+    public $orderField = 'order_by';
 
     /** @var ResourceQuery*/
     private $parent;
 
-    function __construct($parent){
+    function __construct($parent)
+    {
         $this->parent = $parent;
     }
 
@@ -29,7 +30,8 @@ class OrderingBuilder implements \ArrayAccess
      * @param null|string $param
      * @return $this
      */
-    public function setOrderParameter($param=null){
+    public function setOrderParameter($param = null)
+    {
         $this->orderField = $param;
         return $this;
     }
@@ -80,8 +82,8 @@ class OrderingBuilder implements \ArrayAccess
      */
     function add($name, $field = null, $direction = null): OrderParameter
     {
-        if(!isset($this->parameters[$name])){
-            $this->parameters[$name] = new OrderParameter($name,$this->parent);
+        if (!isset($this->parameters[$name])) {
+            $this->parameters[$name] = new OrderParameter($name, $this->parent);
         }
         if ($field !== null)
             $this->parameters[$name]->field($field);
@@ -98,7 +100,7 @@ class OrderingBuilder implements \ArrayAccess
      */
     function set($name, $field = null, $direction = null): OrderParameter
     {
-        $cnd = new OrderParameter($name,$this->parent);
+        $cnd = new OrderParameter($name, $this->parent);
         if ($field !== null)
             $cnd->field($field);
         if ($direction !== null)
@@ -115,7 +117,7 @@ class OrderingBuilder implements \ArrayAccess
 
     public function offsetGet($offset)
     {
-        return empty($this->parameters[$offset]) ?
+        return !isset($this->parameters[$offset]) ?
             $this->add($offset)
             : $this->parameters[$offset];
     }
@@ -134,7 +136,8 @@ class OrderingBuilder implements \ArrayAccess
      * @param array|null $order
      * @return $this
      */
-    public function setDefaultOrder(array $order=null){
+    public function setDefaultOrder(array $order = null)
+    {
         $this->defaultOrder = $order;
         return $this;
     }
@@ -149,38 +152,38 @@ class OrderingBuilder implements \ArrayAccess
     public function applyConditions($query, array $orderData, array &$appliedOrdering = [])
     {
         //Filter order data with defined conditions
-        $orders = array_filter($orderData,function ($order){
+        $orders = array_filter($orderData, function ($order) {
             $field = $order[0];
             return isset($this->parameters[$field]);
         });
 
-        if(count($orders)==0){
+        if (count($orders) == 0) {
             //Apply default conditions
-            if($this->defaultOrder){
+            if ($this->defaultOrder) {
                 //Apply default sort
 
-                foreach($this->defaultOrder AS $k=>$v){
+                foreach ($this->defaultOrder as $k => $v) {
                     $field = $v;
                     $direction = 'asc';
-                    if(!is_int($k)){
+                    if (!is_int($k)) {
                         $field = $k;
-                        $direction = $v==='desc'?'desc':'asc';
+                        $direction = $v === 'desc' ? 'desc' : 'asc';
                     }
                     $param = $this->parameters[$field];
                     /** @var OrderParameter $param */
 
-                    $applied = $param->apply($query,$direction,true);
+                    $applied = $param->apply($query, $direction, true);
                     if ($applied) {
                         $appliedOrdering[] = $applied;
                     }
                 }
             }
 
-        }else{
+        } else {
             //apply conditions
-            foreach($orders AS $order){
+            foreach ($orders as $order) {
                 $field = $order[0];
-                $dir = $order[1]??'asc';
+                $dir = $order[1] ?? 'asc';
 
                 $applied = $this->parameters[$field]->apply($query, $dir);
                 if ($applied) {

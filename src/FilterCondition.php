@@ -18,20 +18,20 @@ class FilterCondition
     use ResourceQueryFallbackTrait;
 
     private
-        $name = null,
-        $field = null,
-        $condition = '=',
-        $defaultValue = null,
-        $applyIf = null,
-        /** @var Callable|null */
-        $valueFormatter = null,
-        /** @var ResourceQuery */
-        $parent;
+    $name = null,
+    $field = null,
+    $condition = '=',
+    $defaultValue = null,
+    $applyIf = null,
+    /** @var Callable|null */
+    $valueFormatter = null,
+    /** @var ResourceQuery */
+    $parent;
     /**
      * FilterCondition constructor.
      * @param string $name Field name
      */
-    function __construct(string $name,ResourceQuery $parent)
+    function __construct(string $name, ResourceQuery $parent)
     {
         $this->name = $name;
         $this->field = $name;
@@ -112,13 +112,13 @@ class FilterCondition
      */
     function applyIfPresent(...$name): FilterCondition
     {
-        if(count($name)>0){
-            if(is_array($name[0])){
+        if (count($name) > 0) {
+            if (is_array($name[0])) {
                 $name = $name[0];
             }
             $this->applyIf(function ($filters, $condition) use ($name) {
                 foreach ($name as $k) {
-                    if (empty($filters[$k]))
+                    if (self::_isEmpty($filters[$k] ?? null))
                         return false;
                 }
                 return true;
@@ -134,13 +134,13 @@ class FilterCondition
      */
     function applyIfNotPresent(...$name): FilterCondition
     {
-        if(count($name)>0){
-            if(is_array($name[0])){
+        if (count($name) > 0) {
+            if (is_array($name[0])) {
                 $name = $name[0];
             }
             $this->applyIf(function ($filters, $condition) use ($name) {
                 foreach ($name as $k) {
-                    if (!empty($filters[$k]))
+                    if (!self::_isEmpty($filters[$k] ?? null))
                         return false;
                 }
                 return true;
@@ -158,7 +158,7 @@ class FilterCondition
     function apply($query, array $filterData, array &$appliedFilters = [])
     {
         if ($this->shouldBeApplied($filterData)) {
-            $value = empty($filterData[$this->name]) ? $this->defaultValue : $filterData[$this->name];
+            $value = self::_isEmpty($filterData[$this->name] ?? null) ? $this->defaultValue : $filterData[$this->name];
             if ($this->valueFormatter) {
                 $value = ($this->valueFormatter)($value);
             }
@@ -173,7 +173,7 @@ class FilterCondition
                 case 'like%':
                     return $query->where($this->field, 'like', "$value%");
                 case 'search':
-                    return $query->where($this->field, 'like', '%'.preg_replace('/[ ]+/','%',$v).'%');
+                    return $query->where($this->field, 'like', '%' . preg_replace('/[ ]+/', '%', $v) . '%');
                 case 'like':
                 case '!=':
                 case '<>':
@@ -189,13 +189,13 @@ class FilterCondition
                     if (!is_array($value))
                         $value = explode(';', $value);
 
-                    if(!empty($value[0]) || !empty($value[1])){
-                        if(empty($value[0])){
-                            $query->where($this->field,'<=',$value[1]);
-                        } elseif(empty($value[1])){
-                            $query->where($this->field,'>=',$value[0]);
-                        }else{
-                            $query->whereBetween($this->field,[$value[0],$value[1]]);
+                    if (!self::_isEmpty($value[0] ?? null) || !self::_isEmpty($value[1] ?? null)) {
+                        if (self::_isEmpty($value[0] ?? null)) {
+                            $query->where($this->field, '<=', $value[1]);
+                        } elseif (self::_isEmpty($value[1] ?? null)) {
+                            $query->where($this->field, '>=', $value[0]);
+                        } else {
+                            $query->whereBetween($this->field, [$value[0], $value[1]]);
                         }
                     }
                     return $query;
@@ -218,7 +218,7 @@ class FilterCondition
      */
     function shouldBeApplied(array $filterData): bool
     {
-        return (!empty($filterData[$this->name]) || $this->defaultValue != null) && $this->isApplicable($filterData);
+        return (!self::_isEmpty($filterData[$this->name] ?? null) || $this->defaultValue != null) && $this->isApplicable($filterData);
     }
 
     /**
@@ -236,9 +236,16 @@ class FilterCondition
      * Remove itself from filter parameters
      * @return FilterBuilder
      */
-    function remove(){
+    function remove()
+    {
         $this->parent->remove($this->name);
         return $this->parent;
+    }
+
+
+    protected static function _isEmpty($v)
+    {
+        return $v === null || trim("$v") == '';
     }
 }
 
