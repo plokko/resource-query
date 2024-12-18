@@ -245,7 +245,7 @@ class FilterCondition
 
     protected static function _isEmpty($v)
     {
-        return $v === null || trim("$v") == '';
+        return empty($v);//$v === null || trim("$v") == '';
     }
 }
 
